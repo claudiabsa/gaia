@@ -1,0 +1,1128 @@
+{
+  "name": "Gaia_1906_LLM",
+  "nodes": [
+    {
+      "parameters": {
+        "outputPrefix": "nf_"
+      },
+      "type": "n8n-nodes-base.compression",
+      "typeVersion": 1.1,
+      "position": [
+        -1580,
+        280
+      ],
+      "id": "7660a7d5-99a5-4ff0-9dbf-0aba162ce6c8",
+      "name": "Compression"
+    },
+    {
+      "parameters": {
+        "url": "https://drive.google.com/uc?export=download&id=13OVAAvDYH8jUwPL-QtyIHOhXg59Ksrtu",
+        "options": {
+          "response": {
+            "response": {}
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -1760,
+        280
+      ],
+      "id": "281ab96e-cc87-4d7e-8a87-c6d2e08185f7",
+      "name": "HTTP Request"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "203dd551-8c8e-4db6-ae84-0bee39c9c2a3",
+                    "leftValue": "={{ $json.text }}",
+                    "rightValue": "ITEM",
+                    "operator": {
+                      "type": "string",
+                      "operation": "contains"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "item"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "755d74ca-4702-4a0f-b754-9f2916322320",
+                    "leftValue": "={{ $json.text }}",
+                    "rightValue": "ITEM",
+                    "operator": {
+                      "type": "string",
+                      "operation": "notContains"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "cabeçalho"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.2,
+      "position": [
+        -1360,
+        280
+      ],
+      "id": "f68fca8c-7f02-4aeb-9a09-e05ea5953538",
+      "name": "Switch"
+    },
+    {
+      "parameters": {
+        "binaryPropertyName": "nf_0",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1,
+      "position": [
+        -1180,
+        400
+      ],
+      "id": "4c585b5c-52e5-40aa-9547-0b31cf0dcb2d",
+      "name": "Extract from File"
+    },
+    {
+      "parameters": {
+        "binaryPropertyName": "nf_1",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1,
+      "position": [
+        -1180,
+        80
+      ],
+      "id": "45ad03bb-d1c2-4d6c-95e7-5cb04ea942dd",
+      "name": "Extract from File1"
+    },
+    {
+      "parameters": {
+        "operation": "completion",
+        "respondWith": "showText",
+        "responseText": "=<!DOCTYPE html>\n<html lang=\"pt-BR\">\n<head>\n    <meta charset=\"UTF-8\">\n\n</head>\n<body bgcolor=\"#ffffff\" text=\"#000000\">\n    <center>\n    <br><br>\n    <h2>Aqui está a sua resposta!</h2>\n    <br>\n    <p>\n    <span style=\"color:#d00073;\">\n     <b>\n      O item com o maior volume de vendas é: {{ $json['DESCRIÇÃO_DO_PRODUTO/SERVIÇO'] }} \n<br>\nA quantidade somada de todas as notas é: {{ $json['sum_QUANTIDADE_NUM'] }} unidades.\n      </b>\n     </span>\n    </p>\n   </center>\n</body>\n</html>\n\n"
+      },
+      "type": "n8n-nodes-base.form",
+      "typeVersion": 1,
+      "position": [
+        360,
+        0
+      ],
+      "id": "5b38d4ff-7bf8-4c68-a2e2-8000b1d59dd7",
+      "name": "Form1",
+      "webhookId": "a58308ea-15dd-4f2c-bb61-d3c383bf497c"
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-2.0-flash",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        -2080,
+        500
+      ],
+      "id": "604937bb-046a-44ae-9531-d6da7cd3722b",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "pzuskYb3SRj89iox",
+          "name": "Google Gemini(PaLM) Api account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Analise a pergunta do usuário e classifique-a em uma das seguintes categorias: \nMAIOR_FORNECEDOR, \nSOMA_VENDAS, \nITEM_COM_MAIOR_VOLUME\nITEM_COM_MAIOR_RECEITA\nDESCONHECIDO. \n\nResponda apenas com o nome da categoria.\nSe não encontrar uma opção, responda DESCONHECIDO. \n\nExemplos:\nPergunta: 'Qual fornecedor vendeu mais?' -> Resposta: MAIOR_FORNECEDOR\nPergunta: 'Quem foi o nosso maior fornecedor em termos de valor?' -> Resposta: MAIOR_FORNECEDOR\nPergunta: 'Que item tem o maior volume entregue?' -> Resposta: ITEM_COM_MAIOR_VOLUME\nPergunta: 'Que item tem o maior receita?' -> Resposta: ITEM_COM_MAIOR_RECEITA\nPergunta: 'Somar notas' -> Resposta: SOMA_VENDAS\n\nPergunta do usuário: {{ $('On form submission').item.json.Pergunta }}\n\n",
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.7,
+      "position": [
+        -2100,
+        280
+      ],
+      "id": "81f597d4-ed0d-40fc-b335-1d8fd534b3df",
+      "name": "Basic LLM Chain2"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "203dd551-8c8e-4db6-ae84-0bee39c9c2a3",
+                    "leftValue": "={{ $('Basic LLM Chain2').item.json.text }}",
+                    "rightValue": "ITEM_COM_MAIOR_VOLUME",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "volume"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "755d74ca-4702-4a0f-b754-9f2916322320",
+                    "leftValue": "={{ $('Basic LLM Chain2').item.json.text }}",
+                    "rightValue": "ITEM_COM_MAIOR_RECEITA",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "receita"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.2,
+      "position": [
+        -220,
+        60
+      ],
+      "id": "50419824-483a-48b2-9b7d-7d6e1b7e7086",
+      "name": "Switch2"
+    },
+    {
+      "parameters": {
+        "operation": "completion",
+        "respondWith": "showText",
+        "responseText": "=<!DOCTYPE html>\n<html lang=\"pt-BR\">\n<head>\n    <meta charset=\"UTF-8\">\n\n</head>\n<body bgcolor=\"#ffffff\" text=\"#000000\">\n    <center>\n    <br><br>\n    <p>\n    <h2>Aqui está a sua resposta!</h2>\n    <br>\n    \n    <span style=\"color:#d00073;\">\n     <b>\n      O item de maior receita é: {{ $json['DESCRIÇÃO_DO_PRODUTO/SERVIÇO'] }} \n<br>\nValor somado de todas os itens das notas é: {{ $json.sum_VALOR_TOTAL_NUM.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) }}. \n      </b>\n     </span>\n    </p>\n   </center>\n</body>\n</html>\n\n"
+      },
+      "type": "n8n-nodes-base.form",
+      "typeVersion": 1,
+      "position": [
+        360,
+        140
+      ],
+      "id": "a2637ac9-51d1-4a5c-8d28-9a797543dda2",
+      "name": "Form4",
+      "webhookId": "a58308ea-15dd-4f2c-bb61-d3c383bf497c"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "203dd551-8c8e-4db6-ae84-0bee39c9c2a3",
+                    "leftValue": "={{ $('Basic LLM Chain2').item.json.text }}",
+                    "rightValue": "MAIOR_FORNECEDOR",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "maior_fornecedor"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "755d74ca-4702-4a0f-b754-9f2916322320",
+                    "leftValue": "={{ $('Basic LLM Chain2').item.json.text }}",
+                    "rightValue": "SOMA_VENDAS",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "soma_vendas"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.2,
+      "position": [
+        -220,
+        380
+      ],
+      "id": "da962a0c-9e39-4919-93ba-f24a7070d83b",
+      "name": "Switch3"
+    },
+    {
+      "parameters": {
+        "formTitle": "Como posso ajudar?",
+        "formDescription": "Escreva aqui o que você quer saber sobre as notas fiscais!",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "Pergunta",
+              "placeholder": "Digite sua pergunta",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Estado",
+              "fieldType": "dropdown",
+              "fieldOptions": {
+                "values": [
+                  {
+                    "option": "Todos"
+                  },
+                  {
+                    "option": "AC"
+                  },
+                  {
+                    "option": "AL"
+                  },
+                  {
+                    "option": "AP"
+                  },
+                  {
+                    "option": "AM"
+                  },
+                  {
+                    "option": "BA"
+                  },
+                  {
+                    "option": "CE"
+                  },
+                  {
+                    "option": "DF"
+                  },
+                  {
+                    "option": "GO"
+                  },
+                  {
+                    "option": "DF"
+                  },
+                  {
+                    "option": "MA"
+                  },
+                  {
+                    "option": "MT"
+                  },
+                  {
+                    "option": "MS"
+                  },
+                  {
+                    "option": "MG"
+                  },
+                  {
+                    "option": "PA"
+                  },
+                  {
+                    "option": "PB"
+                  },
+                  {
+                    "option": "PR"
+                  },
+                  {
+                    "option": "PE"
+                  },
+                  {
+                    "option": "PI"
+                  },
+                  {
+                    "option": "RJ"
+                  },
+                  {
+                    "option": "RN"
+                  },
+                  {
+                    "option": "RS"
+                  },
+                  {
+                    "option": "RO"
+                  },
+                  {
+                    "option": "RR"
+                  },
+                  {
+                    "option": "SC"
+                  },
+                  {
+                    "option": "SP"
+                  },
+                  {
+                    "option": "SE"
+                  },
+                  {
+                    "option": "TO"
+                  }
+                ]
+              },
+              "requiredField": true
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.formTrigger",
+      "typeVersion": 2.2,
+      "position": [
+        -2280,
+        280
+      ],
+      "id": "56889174-a650-4e0e-8691-7f66d1e3fb94",
+      "name": "On form submission",
+      "webhookId": "77073d5a-6533-4aa8-abca-8037662c2f10"
+    },
+    {
+      "parameters": {
+        "fieldsToSummarize": {
+          "values": [
+            {
+              "aggregation": "sum",
+              "field": "VALOR NOTA FISCAL NUM"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.summarize",
+      "typeVersion": 1.1,
+      "position": [
+        0,
+        520
+      ],
+      "id": "53ff9df4-a18a-4a23-858f-585e9ef97cc0",
+      "name": "Summarize",
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "operation": "completion",
+        "respondWith": "showText",
+        "responseText": "=<!DOCTYPE html>\n<html lang=\"pt-BR\">\n<head>\n    <meta charset=\"UTF-8\">\n\n</head>\n<body bgcolor=\"#ffffff\" text=\"#000000\">\n    <center>\n    <br><br>\n    <p>\n    <h2>Aqui está a sua resposta!</h2>\n    <br>\n     <b>\n      A soma das notas fiscais é: \n   <span style=\"color:#d00073;\">\n      {{ $json.sum_VALOR_NOTA_FISCAL_NUM.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) }}\n  </span>\n      </b>\n   \n    </p>\n   </center>\n</body>\n</html>\n\n"
+      },
+      "type": "n8n-nodes-base.form",
+      "typeVersion": 1,
+      "position": [
+        360,
+        520
+      ],
+      "id": "4f80114b-1ed7-4e3b-8eed-1fe71cec5337",
+      "name": "Form5",
+      "webhookId": "1f6f7212-1e3e-4633-b6e2-59917c9eede6"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "2e095fb3-e922-4010-bc07-6fa608837753",
+              "name": "=VALOR NOTA FISCAL NUM",
+              "value": "={{ $json['VALOR NOTA FISCAL'] }}",
+              "type": "number"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {
+          "dotNotation": false
+        }
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -480,
+        380
+      ],
+      "id": "42b7af5e-d90a-43a9-bde8-d4394235de11",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "c6e0cbea-864a-4a39-a028-1e020e2cefa6",
+              "leftValue": "={{ $json['UF EMITENTE'] }}",
+              "rightValue": "={{$('On form submission').item.json.Estado}}",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {
+          "ignoreCase": false
+        }
+      },
+      "type": "n8n-nodes-base.filter",
+      "typeVersion": 2.2,
+      "position": [
+        -700,
+        140
+      ],
+      "id": "76671d79-940f-4e41-bb98-7b69f369cd4e",
+      "name": "Filter"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "e8c986ec-486d-483e-9c54-6ce787574f93",
+              "leftValue": "={{ $('On form submission').item.json.Estado }}",
+              "rightValue": "Todos",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -980,
+        80
+      ],
+      "id": "a7e79018-abba-4218-ac35-cb2e01e70a61",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "e8c986ec-486d-483e-9c54-6ce787574f93",
+              "leftValue": "={{ $('On form submission').item.json.Estado }}",
+              "rightValue": "Todos",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -980,
+        400
+      ],
+      "id": "a7b6b83d-d69d-4093-a3f7-a0eb83570f1b",
+      "name": "If1"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "c6e0cbea-864a-4a39-a028-1e020e2cefa6",
+              "leftValue": "={{$json['UF EMITENTE']}}",
+              "rightValue": "={{$('On form submission').item.json.Estado}}",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {
+          "ignoreCase": false
+        }
+      },
+      "type": "n8n-nodes-base.filter",
+      "typeVersion": 2.2,
+      "position": [
+        -700,
+        480
+      ],
+      "id": "04d170d6-b1f0-423d-b149-d68f6654d8be",
+      "name": "Filter1"
+    },
+    {
+      "parameters": {
+        "operation": "completion",
+        "respondWith": "showText",
+        "responseText": "=<!DOCTYPE html>\n<html lang=\"pt-BR\">\n<head>\n    <meta charset=\"UTF-8\">\n\n</head>\n<body bgcolor=\"#ffffff\" text=\"#000000\">\n    <center>\n    <br><br>\n    <h2>Aqui está a sua resposta!</h2>\n    <br>\n    <p>\n    <span style=\"color:#d00073;\">\n     <b>\n      O fornecedor que mais vendeu: {{ $json['RAZÃO_SOCIAL_EMITENTE'] }} \n       <br>\nValor total somado de todas as notas é: R$ {{$(\"Sort\").item.json[\"sum_VALOR_NOTA_FISCAL_NUM\"].toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) }}\n      </b>\n     </span>\n    </p>\n   </center>\n</body>\n</html>\n\n"
+      },
+      "type": "n8n-nodes-base.form",
+      "typeVersion": 1,
+      "position": [
+        360,
+        300
+      ],
+      "id": "2be83f42-4a9f-4770-8333-b9a584719130",
+      "name": "Form2",
+      "webhookId": "1f6f7212-1e3e-4633-b6e2-59917c9eede6"
+    },
+    {
+      "parameters": {
+        "fieldsToSummarize": {
+          "values": [
+            {
+              "aggregation": "sum",
+              "field": "VALOR NOTA FISCAL NUM"
+            }
+          ]
+        },
+        "fieldsToSplitBy": "RAZÃO SOCIAL EMITENTE,CPF/CNPJ Emitente",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.summarize",
+      "typeVersion": 1.1,
+      "position": [
+        0,
+        300
+      ],
+      "id": "8c27abd2-15c3-4f6f-970a-598337aa1f33",
+      "name": "Summarize1",
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "sortFieldsUi": {
+          "sortField": [
+            {
+              "fieldName": "sum_VALOR_NOTA_FISCAL_NUM",
+              "order": "descending"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.sort",
+      "typeVersion": 1,
+      "position": [
+        180,
+        300
+      ],
+      "id": "8f953a2d-3a49-4a70-956e-9e23c4d6cdf5",
+      "name": "Sort"
+    },
+    {
+      "parameters": {
+        "fieldsToSummarize": {
+          "values": [
+            {
+              "aggregation": "sum",
+              "field": "QUANTIDADE NUM"
+            }
+          ]
+        },
+        "fieldsToSplitBy": "DESCRIÇÃO DO PRODUTO/SERVIÇO",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.summarize",
+      "typeVersion": 1.1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "226acce8-b88a-413f-aaef-3d9ff111b075",
+      "name": "Summarize2",
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "sortFieldsUi": {
+          "sortField": [
+            {
+              "fieldName": "sum_QUANTIDADE_NUM",
+              "order": "descending"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.sort",
+      "typeVersion": 1,
+      "position": [
+        180,
+        0
+      ],
+      "id": "7a8e2320-4ce6-4a2e-9677-712a2e279356",
+      "name": "Sort1"
+    },
+    {
+      "parameters": {
+        "fieldsToSummarize": {
+          "values": [
+            {
+              "aggregation": "sum",
+              "field": "VALOR TOTAL NUM"
+            }
+          ]
+        },
+        "fieldsToSplitBy": "DESCRIÇÃO DO PRODUTO/SERVIÇO",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.summarize",
+      "typeVersion": 1.1,
+      "position": [
+        0,
+        140
+      ],
+      "id": "1f8ba6f2-4986-4190-b6c1-d0db442db632",
+      "name": "Summarize3",
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "2e095fb3-e922-4010-bc07-6fa608837753",
+              "name": "=VALOR TOTAL NUM",
+              "value": "={{ $json['VALOR TOTAL'] }}",
+              "type": "number"
+            },
+            {
+              "id": "9d818f93-9760-4e95-8ebc-5b4ec703e444",
+              "name": "QUANTIDADE NUM",
+              "value": "={{ $json['QUANTIDADE'] }}",
+              "type": "number"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {
+          "dotNotation": false
+        }
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -420,
+        60
+      ],
+      "id": "36650fa0-cf02-44cb-a302-e6dc01684a1f",
+      "name": "Edit Fields1"
+    },
+    {
+      "parameters": {
+        "sortFieldsUi": {
+          "sortField": [
+            {
+              "fieldName": "sum_VALOR_TOTAL_NUM",
+              "order": "descending"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.sort",
+      "typeVersion": 1,
+      "position": [
+        180,
+        140
+      ],
+      "id": "a015885b-71bd-4733-b9a3-244336226338",
+      "name": "Sort2"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Compression",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Compression": {
+      "main": [
+        [
+          {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch": {
+      "main": [
+        [
+          {
+            "node": "Extract from File1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Extract from File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract from File": {
+      "main": [
+        [
+          {
+            "node": "If1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract from File1": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Basic LLM Chain2",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Basic LLM Chain2": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch2": {
+      "main": [
+        [
+          {
+            "node": "Summarize2",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Summarize3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "On form submission": {
+      "main": [
+        [
+          {
+            "node": "Basic LLM Chain2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch3": {
+      "main": [
+        [
+          {
+            "node": "Summarize1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Summarize",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Summarize": {
+      "main": [
+        [
+          {
+            "node": "Form5",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Switch3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Filter": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Filter",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If1": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Filter1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Filter1": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Summarize1": {
+      "main": [
+        [
+          {
+            "node": "Sort",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Sort": {
+      "main": [
+        [
+          {
+            "node": "Form2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Summarize2": {
+      "main": [
+        [
+          {
+            "node": "Sort1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Sort1": {
+      "main": [
+        [
+          {
+            "node": "Form1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields1": {
+      "main": [
+        [
+          {
+            "node": "Switch2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Summarize3": {
+      "main": [
+        [
+          {
+            "node": "Sort2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Sort2": {
+      "main": [
+        [
+          {
+            "node": "Form4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "663e48a2-46e6-4451-86e1-3fb70f197f48",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "a97f79989fb4c97d9ee2ecfafd6414a08e2666439eea246badce4973db2057d7"
+  },
+  "id": "yJ9Qru8nEWTcfDJ0",
+  "tags": []
+}
